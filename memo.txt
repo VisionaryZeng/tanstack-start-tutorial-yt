@@ -1,3 +1,7 @@
+启动命令
+pnpm run dev
+
+
 package.json 中 devDependencies 中的依赖不会打包到生产环境
 
 .cta.json 是 tanstack 的配置
@@ -13,3 +17,15 @@ routeTree.gen.ts tanstack 创建的文件，会自动分析所有路由并添加
 平面路由 用点号"." 代表路由，使用场景嵌套只存在少数路由时
 
 本地化布局：进入某个路由节点后，渲染导航条，类似于面包屑，并使用 outlet 组件，渲染该路由的所有子路由
+
+
+安装 shadcn/ui，其中 b3kHzcrmC 是要在页面选择生成的，不是固定的
+pnpm dlx shadcn@latest init --preset b3kHzcrmC --base radix --template start
+
+components.json 是 shadcn/ui 的配置文件
+
+添加组件
+pnpm dlx shadcn@latest add button
+pnpm dlx shadcn@latest add input
+
+
