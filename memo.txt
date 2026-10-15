@@ -29,3 +29,9 @@ pnpm dlx shadcn@latest add button
 pnpm dlx shadcn@latest add input
 
 
+无路径路由：加上 '_' 前缀的文件夹不会被映射到路由上，即使加上前缀也无法访问
+
+登录表单
+npx shadcn@latest add login-01
+
+
