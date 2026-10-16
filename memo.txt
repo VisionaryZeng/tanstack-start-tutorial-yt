@@ -34,4 +34,7 @@ pnpm dlx shadcn@latest add input
 登录表单
 npx shadcn@latest add login-01
 
+表单校验
+pnpm add @tanstack/react-form
+pnpm i zod
 
