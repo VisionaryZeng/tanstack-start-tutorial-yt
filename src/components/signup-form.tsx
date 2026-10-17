@@ -13,12 +13,15 @@ import {
     FieldLabel,
 } from "@/components/ui/field"
 import {Input} from "@/components/ui/input"
-import {Link} from "@tanstack/react-router";
+import {Link, useNavigate} from "@tanstack/react-router";
 import {useForm} from "@tanstack/react-form";
 import {signupSchema} from "@/schemas/auth.ts";
+import {authClient} from "@/lib/auth-client.ts";
+import {toast} from "sonner";
 
 export function SignupForm({...props}: React.ComponentProps<typeof Card>) {
 
+    const navigate = useNavigate();
     const form = useForm({
         defaultValues: {
             fullName: "",
@@ -29,7 +32,23 @@ export function SignupForm({...props}: React.ComponentProps<typeof Card>) {
             onSubmit: signupSchema,
         },
         onSubmit: async ({value}) => {
-            console.log(value)
+            await authClient.signUp.email({
+                // name 是固定的，而不是 fullName
+                name: value.fullName,
+                email: value.email,
+                password: value.password,
+                fetchOptions: {
+                    onSuccess: () => {
+                        toast.success("Account creates successfully")
+                        navigate({
+                            to: "/"
+                        })
+                    },
+                    onError: ({error}) => {
+                        toast.error(error.message)
+                    }
+                }
+            })
         }
     })
 

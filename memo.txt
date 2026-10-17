@@ -38,3 +38,19 @@ npx shadcn@latest add login-01
 pnpm add @tanstack/react-form
 pnpm i zod
 
+
+prisma 生成客户端，前提已经配置好 DATABASE_URL
+pnpm run db:push
+pnpm run db:generate
+
+better-auth 生成数据表
+pnpm dlx auth@latest generate
+
+
+routeTree.gen.ts 只有在项目启动时才会运行生成路由
+
+
+页面弹框
+pnpm dlx shadcn@latest add sonner
+
+

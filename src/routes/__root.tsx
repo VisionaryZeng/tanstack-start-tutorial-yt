@@ -4,6 +4,7 @@ import {TanStackDevtools} from '@tanstack/react-devtools'
 
 import appCss from '../styles.css?url'
 import {ThemeProvider} from "@/components/theme-provider.tsx";
+import {Toaster} from "@/components/ui/sonner.tsx";
 
 //  跟路由 所有路由的入口
 
@@ -40,6 +41,8 @@ function RootDocument({children}: { children: React.ReactNode }) {
         <body>
         <ThemeProvider defaultTheme={"system"} storageKey={"theme"}>
             {children}
+            {/* 弹框显示占位符 */}
+            <Toaster closeButton position={"top-center"} />
         </ThemeProvider>
         <TanStackDevtools
             config={{
