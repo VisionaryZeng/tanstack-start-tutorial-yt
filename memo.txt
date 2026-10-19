@@ -9,8 +9,8 @@ package.json 中 devDependencies 中的依赖不会打包到生产环境
 public 存放静态资源
 
 
-src> routers> 定义所有的 路由
-
+src> routers> xxx> index.tsx 定义所有路由
+src> routers> xxx> route.tsx 定义当前路由布局
 routeTree.gen.ts tanstack 创建的文件，会自动分析所有路由并添加路由，不要动。 Link 组件会引用这个文件，如果Link组件引用了不存在的路由，就会报错，这就是 tanstack 的路由安全原理
 
 目录路由 就是用文件夹和文件代表路由，应用场景是需要很多嵌套路由时
@@ -47,10 +47,19 @@ better-auth 生成数据表
 pnpm dlx auth@latest generate
 
 
-routeTree.gen.ts 只有在项目启动时才会运行生成路由
+routeTree.gen.ts 只有在项目启动时才会运行生成路由，有些时候这个文件在打开时，可能解析路由失败，需要关闭文件并再次打开
 
 
 页面弹框
 pnpm dlx shadcn@latest add sonner
+
+
+dashboard
+npx shadcn@latest add sidebar-07
+
+asChildren: 此属性潜台词是：“把我的衣服（样式）和灵魂（无障碍属性/事件）穿在里面这个子元素身上，我本身就不渲染了。”
+
+
+路由链接激活 就是 URL 的地址是路由链接
 
 

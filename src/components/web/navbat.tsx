@@ -42,7 +42,7 @@ export function Navbar() {
                         isPending ? null :
                             session ? (
                                 <>
-                                    <Link to={"/"} className={buttonVariants({variant: "secondary"})}>Dashboard</Link>
+                                    <Link to={"/dashboard"} className={buttonVariants({variant: "secondary"})}>Dashboard</Link>
                                     <Button onClick={handleLogout} >Logout</Button>
                                 </>
                             ) : (
