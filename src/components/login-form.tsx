@@ -20,6 +20,7 @@ import {useForm} from "@tanstack/react-form";
 import {loginSchema} from "@/schemas/auth.ts";
 import {authClient} from "@/lib/auth-client.ts";
 import {toast} from "sonner";
+import {useTransition} from "react";
 
 export function LoginForm({
                               className,
@@ -27,6 +28,8 @@ export function LoginForm({
                           }: React.ComponentProps<"div">) {
 
     const navigate = useNavigate();
+
+    const [isPending, startTransition] = useTransition()
 
     const form = useForm({
         defaultValues: {
@@ -36,21 +39,23 @@ export function LoginForm({
         validators: {
             onSubmit: loginSchema,
         },
-        onSubmit: async ({value}) => {
-            await authClient.signIn.email({
-                email: value.email,
-                password: value.password,
-                fetchOptions: {
-                    onSuccess: () => {
-                        toast.success("Logged successfully")
-                        navigate({
-                            to: "/"
-                        })
-                    },
-                    onError: ({error}) => {
-                        toast.error(error.message)
+        onSubmit: ({value}) => {
+            startTransition(async () => {
+                await authClient.signIn.email({
+                    email: value.email,
+                    password: value.password,
+                    fetchOptions: {
+                        onSuccess: () => {
+                            toast.success("Logged successfully")
+                            navigate({
+                                to: "/dashboard"
+                            })
+                        },
+                        onError: ({error}) => {
+                            toast.error(error.message)
+                        }
                     }
-                }
+                })
             })
         }
     })
@@ -128,7 +133,9 @@ export function LoginForm({
                                 }}
                             />
                             <Field>
-                                <Button type="submit">Login</Button>
+                                <Button disabled={isPending} type="submit">
+                                    {isPending? "Logging in...": "Login"}
+                                </Button>
                                 {/*<Button variant="outline" type="button">*/}
                                 {/*  Login with Google*/}
                                 {/*</Button>*/}

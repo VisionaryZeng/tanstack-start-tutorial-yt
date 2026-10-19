@@ -18,10 +18,14 @@ import {useForm} from "@tanstack/react-form";
 import {signupSchema} from "@/schemas/auth.ts";
 import {authClient} from "@/lib/auth-client.ts";
 import {toast} from "sonner";
+import {useTransition} from "react";
 
 export function SignupForm({...props}: React.ComponentProps<typeof Card>) {
 
     const navigate = useNavigate();
+
+    const [isPending, startTransition] = useTransition()
+
     const form = useForm({
         defaultValues: {
             fullName: "",
@@ -31,24 +35,28 @@ export function SignupForm({...props}: React.ComponentProps<typeof Card>) {
         validators: {
             onSubmit: signupSchema,
         },
-        onSubmit: async ({value}) => {
-            await authClient.signUp.email({
-                // name 是固定的，而不是 fullName
-                name: value.fullName,
-                email: value.email,
-                password: value.password,
-                fetchOptions: {
-                    onSuccess: () => {
-                        toast.success("Account creates successfully")
-                        navigate({
-                            to: "/"
-                        })
-                    },
-                    onError: ({error}) => {
-                        toast.error(error.message)
+        onSubmit: ({value}) => {
+            startTransition(async () => {
+                await authClient.signUp.email({
+                    // name 是固定的，而不是 fullName
+                    name: value.fullName,
+                    email: value.email,
+                    password: value.password,
+                    fetchOptions: {
+                        onSuccess: () => {
+                            toast.success("Account creates successfully")
+                            navigate({
+                                to: "/dashboard"
+                            })
+                        },
+                        onError: ({error}) => {
+                            toast.error(error.message)
+                        }
                     }
-                }
+                })
             })
+
+
         }
     })
 
@@ -152,7 +160,9 @@ export function SignupForm({...props}: React.ComponentProps<typeof Card>) {
                         />
                         <FieldGroup>
                             <Field>
-                                <Button type="submit">Create Account</Button>
+                                <Button disabled={isPending} type="submit">
+                                    {isPending ? "Creating..." : "Create Account"}
+                                </Button>
                                 {/*<Button variant="outline" type="button">*/}
                                 {/*  Sign up with Google*/}
                                 {/*</Button>*/}
