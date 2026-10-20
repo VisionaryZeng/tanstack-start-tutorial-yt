@@ -1,12 +1,8 @@
-import {createFileRoute} from '@tanstack/react-router'
-import {getSessionFn} from "@/data/session.ts";
+import {createFileRoute, redirect} from '@tanstack/react-router'
 
 export const Route = createFileRoute('/dashboard/')({
-    component: RouteComponent,
-    loader: () => getSessionFn()
+    // 在加载此组件前，重定向到其他路由
+    beforeLoad: () => {
+        throw redirect({to: "/dashboard/import"})
+    }
 })
-
-function RouteComponent() {
-    const {user} = Route.useLoaderData();
-    return <div>{user.name}</div>
-}
