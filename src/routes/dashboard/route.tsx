@@ -2,29 +2,37 @@ import {createFileRoute, Outlet} from '@tanstack/react-router'
 import {SidebarInset, SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar.tsx";
 import {AppSidebar} from "@/components/app-sidebar.tsx";
 import {Separator} from "@/components/ui/separator.tsx";
+import {getSessionFn} from "@/data/session.ts";
 
 export const Route = createFileRoute('/dashboard')({
-  component: RouteComponent,
+    component: RouteComponent,
+    loader: () => getSessionFn()
 })
 
 function RouteComponent() {
-  return <div>
-      <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-              <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-                  <div className="flex items-center gap-2 px-4">
-                      <SidebarTrigger className="-ml-1" />
-                      <Separator
-                          orientation="vertical"
-                          className="mr-2 data-[orientation=vertical]:h-4"
-                      />
-                  </div>
-              </header>
-              <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-                  <Outlet/>
-              </div>
-          </SidebarInset>
-      </SidebarProvider>
-  </div>
+
+    //使用 服务端函数，实现服务端渲染，刷新的时候，数据不会有延迟
+    // Route.useLoaderData() 时需要在 Route 上定义 loader: () => xxx()
+    const {user} = Route.useLoaderData()
+
+    return <div>
+        <SidebarProvider>
+            <AppSidebar user={user}/>
+            <SidebarInset>
+                <header
+                    className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+                    <div className="flex items-center gap-2 px-4">
+                        <SidebarTrigger className="-ml-1"/>
+                        <Separator
+                            orientation="vertical"
+                            className="mr-2 data-[orientation=vertical]:h-4"
+                        />
+                    </div>
+                </header>
+                <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+                    <Outlet/>
+                </div>
+            </SidebarInset>
+        </SidebarProvider>
+    </div>
 }

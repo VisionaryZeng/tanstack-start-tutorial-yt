@@ -1,9 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router'
+import {createFileRoute} from '@tanstack/react-router'
+import {getSessionFn} from "@/data/session.ts";
 
 export const Route = createFileRoute('/dashboard/')({
-  component: RouteComponent,
+    component: RouteComponent,
+    loader: () => getSessionFn()
 })
 
 function RouteComponent() {
-  return <div>Hello "/dashboard/"!</div>
+    const {user} = Route.useLoaderData();
+    return <div>{user.name}</div>
 }
