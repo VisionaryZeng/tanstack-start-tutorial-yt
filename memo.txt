@@ -40,7 +40,9 @@ pnpm i zod
 
 
 prisma 生成客户端，前提已经配置好 DATABASE_URL
+同步模型到数据库
 pnpm run db:push
+生成模型客户端
 pnpm run db:generate
 
 better-auth 生成数据表
@@ -70,10 +72,11 @@ asChildren: 此属性潜台词是：“把我的衣服（样式）和灵魂（�
 服务端函数客户端和服务端都可以调用，但在客户端调用算是RPC调用，因为服务端函数只在服务端运行
 
 
-运算符	当a为 null/undefined	    当a为 0、''、false、NaN
-a ?? b	返回b                    返回a（保留假值）
-a || b	返回b                    返回b（丢弃假值）
+运算符	    当a为 null/undefined	    当a为 0、''、false、NaN
+a ?? b	    返回b                    返回a（保留假值）
+a || b	    返回b                    返回b（丢弃假值）
 
+整合 firecrawl
 
 
 
