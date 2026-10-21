@@ -8,7 +8,7 @@ import {bulkImportSchema, singleImportSchema} from "@/schemas/import.ts";
 import {useTransition} from "react";
 import {Input} from "@/components/ui/input.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {scrapeUrlFn} from "@/data/firecrawl.ts";
+import {scrapeUrlFn} from "@/data/items.ts";
 
 export const Route = createFileRoute('/dashboard/import')({
     component: RouteComponent,
