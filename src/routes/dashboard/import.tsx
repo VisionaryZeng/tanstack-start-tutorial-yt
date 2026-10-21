@@ -8,6 +8,7 @@ import {bulkImportSchema, singleImportSchema} from "@/schemas/import.ts";
 import {useTransition} from "react";
 import {Input} from "@/components/ui/input.tsx";
 import {Button} from "@/components/ui/button.tsx";
+import {scrapeUrlFn} from "@/data/firecrawl.ts";
 
 export const Route = createFileRoute('/dashboard/import')({
     component: RouteComponent,
@@ -26,7 +27,7 @@ function RouteComponent() {
         },
         onSubmit: ({value}) => {
             startTransition(async () => {
-                console.log(value.url);
+                await scrapeUrlFn({data: value})
             })
         }
     })
