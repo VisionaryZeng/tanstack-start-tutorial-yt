@@ -10,7 +10,7 @@ public 存放静态资源
 
 
 src> routers> xxx> index.tsx 定义所有路由
-src> routers> xxx> route.tsx 定义当前路由布局
+src> routers> xxx> route.tsx 定义当前路由布局： 由于切换子路由时不会被卸载和重新渲染的，路由布局不能用于做鉴权。切换子路由时 React 只是在这个布局内部替换了 <Outlet/> 里的子组件
 routeTree.gen.ts tanstack 创建的文件，会自动分析所有路由并添加路由，不要动。 Link 组件会引用这个文件，如果Link组件引用了不存在的路由，就会报错，这就是 tanstack 的路由安全原理
 
 目录路由 就是用文件夹和文件代表路由，应用场景是需要很多嵌套路由时
@@ -78,5 +78,14 @@ a || b	    返回b                    返回b（丢弃假值）
 
 整合 firecrawl
 pnpm install firecrawl
+
+
+
+路由布局不能用硬编码处理用户会话鉴权，否则丢失会话时，用户还是可以看到原来的页面
+
+中间件：
+server middleware: 只在使用的位置生效
+global middleware: 拦截所有请求，位置固定为 src> start.ts
+
 
 
