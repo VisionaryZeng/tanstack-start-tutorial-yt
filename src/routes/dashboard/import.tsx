@@ -9,6 +9,7 @@ import {useTransition} from "react";
 import {Input} from "@/components/ui/input.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {scrapeUrlFn} from "@/data/items.ts";
+import {toast} from "sonner";
 
 export const Route = createFileRoute('/dashboard/import')({
     component: RouteComponent,
@@ -28,6 +29,7 @@ function RouteComponent() {
         onSubmit: ({value}) => {
             startTransition(async () => {
                 await scrapeUrlFn({data: value})
+                toast.success("URL scraped successfully!")
             })
         }
     })
