@@ -149,3 +149,16 @@ export const bulkScrapeUrlFn = createServerFn({method: "POST"})
             }
         }
     })
+
+export const getItemsFn = createServerFn({method: "GET"})
+.middleware([authFnMiddleware])
+.handler(async ({context}) => {
+    return await prisma.savedItem.findMany({
+        where: {
+            userId: context.session.user.id,
+        },
+        orderBy: {
+            createdAt: "desc"
+        }
+    })
+})
