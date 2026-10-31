@@ -1,7 +1,7 @@
 import {createFileRoute, Link, useNavigate} from '@tanstack/react-router'
 import {getItemsFn} from "@/data/items.ts";
 import {Card, CardHeader, CardTitle} from "@/components/ui/card.tsx";
-import {Copy} from "lucide-react";
+import {Copy, Inbox} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {copyToClipboard} from "@/lib/clipboard.ts";
 import {Badge} from "@/components/ui/badge.tsx";
@@ -10,6 +10,104 @@ import {Input} from "@/components/ui/input.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
 import {itemsSearchSchema} from "@/schemas/item.ts";
 import {useEffect, useState} from "react";
+import type {ItemsSearch} from "@/lib/types.ts";
+import {Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from "@/components/ui/empty.tsx";
+
+
+function ItemsList({
+                       data,
+                       q,
+                       status
+                   }: {
+                        data: Awaited<ReturnType<typeof getItemsFn>>,
+                        q: ItemsSearch['q'],
+                        status: ItemsSearch['status']
+                }) {
+
+    const filteredItem = data.filter((item) => {
+        const matchQuery = q === ''
+            || item.title?.toLowerCase().includes(q.toLowerCase())
+            || item.tags.some((tag) => tag.toLowerCase().includes(q.toLowerCase()));
+
+        const matchStatus = status === 'all' || item.status === status;
+        return matchQuery && matchStatus;
+    })
+
+    if (filteredItem.length === 0) {
+        return (
+            <Empty className={"board rounded-lg h-full"}>
+                <EmptyHeader>
+                    <EmptyMedia variant={"icon"}>
+                        <Inbox className={"size-12"}/>
+                    </EmptyMedia>
+                    <EmptyTitle>
+                        {data.length === 0 ? "No Items saved yet" : "No Items Found"}
+                    </EmptyTitle>
+                    <EmptyDescription>
+                        {data.length === 0 ? "Import a URL to get started with saving your content." : "No items match your current search filters."}
+                    </EmptyDescription>
+                </EmptyHeader>
+                {data.length === 0 && (
+                    <EmptyContent>
+                        <Link to={"/dashboard/import"}>
+                            Import URL
+                        </Link>
+                    </EmptyContent>
+                )}
+            </Empty>
+        )
+    }
+
+    return (
+        <div className={"grid gap-6 md:grid-cols-2"}>
+            {filteredItem.map((item) => (
+                <Card
+                    key={item.id}
+                    className={"group overflow-hidden transition-all hover:shadow-lg pt-0"}
+                >
+                    <Link to={"/dashboard"} className={"block"}>
+                        {item.ogImage && (
+                            <div className={"aspect-video w-full overflow-hidden bg-muted"}>
+                                <img
+                                    src={item.ogImage}
+                                    alt={item.title ?? 'Article Thumbnail'}
+                                    className="h-full w-full object-cover transition-transfrom group-hover:scale-105"
+                                />
+                            </div>
+                        )}
+
+                        <CardHeader className={"space-y-3 pt-4"}>
+                            <div className={"flex items-center justify-between gap-2"}>
+                                <Badge
+                                    variant={item.status === ItemStatus.COMPLETED ? "default" : "secondary"}
+                                >
+                                    {item.status.toLocaleLowerCase()}
+                                </Badge>
+                                <Button
+                                    onClick={async (e) => {
+                                        e.preventDefault()
+                                        await copyToClipboard(item.url)
+                                    }}
+                                    variant={"outline"}
+                                    size={"icon"}
+                                    className={"size-8"}
+                                >
+                                    <Copy className={"size-4"}/>
+                                </Button>
+                            </div>
+
+                            <CardTitle
+                                className={"line-clamp-1 text-xl leading-snug group-hover:text-primary transition-colors"}>
+                                {item.title}
+                            </CardTitle>
+                        </CardHeader>
+                    </Link>
+                </Card>
+            ))}
+        </div>
+    )
+}
+
 
 export const Route = createFileRoute('/dashboard/items/')({
     component: RouteComponent,
@@ -68,54 +166,7 @@ function RouteComponent() {
                     </SelectContent>
                 </Select>
             </div>
-
-
-            <div className={"grid gap-6 md:grid-cols-2"}>
-                {data.map((item) => (
-                    <Card
-                        key={item.id}
-                        className={"group overflow-hidden transition-all hover:shadow-lg pt-0"}
-                    >
-                        <Link to={"/dashboard"} className={"block"}>
-                            {item.ogImage && (
-                                <div className={"aspect-video w-full overflow-hidden bg-muted"}>
-                                    <img
-                                        src={item.ogImage}
-                                        alt={item.title ?? 'Article Thumbnail'}
-                                        className="h-full w-full object-cover transition-transfrom group-hover:scale-105"
-                                    />
-                                </div>
-                            )}
-
-                            <CardHeader className={"space-y-3 pt-4"}>
-                                <div className={"flex items-center justify-between gap-2"}>
-                                    <Badge
-                                        variant={item.status === ItemStatus.COMPLETED ? "default" : "secondary"}
-                                    >
-                                        {item.status.toLocaleLowerCase()}
-                                    </Badge>
-                                    <Button
-                                        onClick={async (e) => {
-                                            e.preventDefault()
-                                            await copyToClipboard(item.url)
-                                        }}
-                                        variant={"outline"}
-                                        size={"icon"}
-                                        className={"size-8"}
-                                    >
-                                        <Copy className={"size-4"}/>
-                                    </Button>
-                                </div>
-
-                                <CardTitle
-                                    className={"line-clamp-1 text-xl leading-snug group-hover:text-primary transition-colors"}>
-                                    {item.title}
-                                </CardTitle>
-                            </CardHeader>
-                        </Link>
-                    </Card>
-                ))}
-            </div>
+            <ItemsList data={data} q={q} status={status}/>
         </div>
     )
 }
