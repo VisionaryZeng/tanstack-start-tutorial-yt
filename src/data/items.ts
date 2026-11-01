@@ -150,6 +150,7 @@ export const bulkScrapeUrlFn = createServerFn({method: "POST"})
         }
     })
 
+// 只要是通过 createServerFn 创建的 Server Function，当在其他地方（特别是客户端）调用它时，它最终返回的必然是一个 Promise
 export const getItemsFn = createServerFn({method: "GET"})
 .middleware([authFnMiddleware])
 .handler(async ({context}) => {

@@ -1,5 +1,5 @@
 启动命令
-pnpm run dev
+pnpm run dev --host
 
 
 package.json 中 devDependencies 中的依赖不会打包到生产环境

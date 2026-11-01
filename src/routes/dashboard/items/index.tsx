@@ -1,4 +1,4 @@
-import {createFileRoute, Link, useNavigate} from '@tanstack/react-router'
+import {createFileRoute, defer, Link, useNavigate} from '@tanstack/react-router'
 import {getItemsFn} from "@/data/items.ts";
 import {Card, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {Copy, Inbox} from "lucide-react";
@@ -24,8 +24,10 @@ function ItemsList({
                         q: ItemsSearch['q'],
                         status: ItemsSearch['status']
                 }) {
+    // use() 在纯同步的 React 组件代码中，优雅地“解包（Unwrap）”一个异步的 Promise，并自动触发 Suspense（悬念）机制
     const items = use(data)
 
+    // 前端过滤
     const filteredItem = items.filter((item) => {
         const matchQuery = q === ''
             || item.title?.toLowerCase().includes(q.toLowerCase())
@@ -35,6 +37,7 @@ function ItemsList({
         return matchQuery && matchStatus;
     })
 
+    // 数据友好提示
     if (filteredItem.length === 0) {
         return (
             <Empty className={"board rounded-lg h-full"}>
@@ -110,6 +113,7 @@ function ItemsList({
     )
 }
 
+// 骨架屏
 function ItemsGridSkeleton() {
     return (
         <div className={"grid gap-6 md:grid-cols-2"}>
@@ -132,7 +136,16 @@ function ItemsGridSkeleton() {
 
 export const Route = createFileRoute('/dashboard/items/')({
     component: RouteComponent,
-    loader: () => ({itemsPromise: getItemsFn()}),
+    // loader 瞬间执行完毕并返回一个普通对象，路由不再等待数据，立刻放行并开始渲染 RouteComponent
+
+    /*
+    【只要 loader 中返回对象内部包含 Promise，就务必用 defer() 包装起来】
+    标准的 JSON 序列化（JSON.stringify）是无法序列化一个 Promise 对象的。它不知道怎么把一个“正在计算中的未来状态”变成字符串
+    框架看到被 defer 包裹的 Promise，处理逻辑会变成：
+    这是一个流式数据。不把它 JSON 序列化。先立刻把现有的 HTML 骨架发给浏览器，但不切断 HTTP 连接。
+    在这里等这个 Promise，一旦它在服务端有结果了，立刻顺着这根没断开的网线，把结果追加（Stream）发送给浏览器！
+    */
+    loader: () => ({itemsPromise: defer(getItemsFn())}),
     validateSearch: itemsSearchSchema
 })
 
@@ -140,10 +153,29 @@ function RouteComponent() {
     const {itemsPromise} = Route.useLoaderData();
     const {status, q} = Route.useSearch();
     const [searchInput, setSearchInput] = useState(q);
+    // 【URL as State】
+    // 通过传入 from: Route.fullPath，navigate 函数会立刻知道当前在哪个页面。
+    // 这样在后续修改 search（URL查询参数）时，TypeScript 就能提供完美的自动补全和类型校验，防止你拼错参数名
     const navigate = useNavigate({from: Route.fullPath});
+
+
+    /*
+    防抖原理： 每次依赖项发生改变的300ms内再发生改变都会取消作废，直到依赖项超过300ms不再改变，最后只更新最后的状态
+    当依赖项改变，
+    第一步（清理旧账）React 找到上一次渲染快照遗留下来的 return 清理函数，并在那个旧的闭包作用域内执行它（例如清理旧的定时器、取消旧的 Fetch 请求、解绑旧的事件监听）
+    第二步（同步新局）：执行本次渲染快照中新的 Effect 逻辑，并将其返回的全新清理函数存入内存，等待下一次状态改变或组件卸载时调用
+    */
     useEffect(() => {
         if (searchInput === q) return
         const timeoutId = setTimeout(() => {
+            /*
+            navigate 通过改变 URL 这个全局共享状态，命令底层数据流重新去服务端拉取最新的搜索结果
+
+            修改地址栏
+            触发参数校验
+            重新触发数据加载（Loader 重新执行）
+            流式渲染与 UI 更新
+            */
             navigate({search: (prev) => ({...prev, q: searchInput})})
         }, 300)
         return () => {
