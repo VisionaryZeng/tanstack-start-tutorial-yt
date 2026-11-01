@@ -9,9 +9,10 @@ import {ItemStatus} from "@/generated/prisma/enums.ts";
 import {Input} from "@/components/ui/input.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
 import {itemsSearchSchema} from "@/schemas/item.ts";
-import {useEffect, useState} from "react";
+import {Suspense, use, useEffect, useState} from "react";
 import type {ItemsSearch} from "@/lib/types.ts";
 import {Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from "@/components/ui/empty.tsx";
+import {Skeleton} from "@/components/ui/skeleton.tsx";
 
 
 function ItemsList({
@@ -19,12 +20,13 @@ function ItemsList({
                        q,
                        status
                    }: {
-                        data: Awaited<ReturnType<typeof getItemsFn>>,
+                        data: ReturnType<typeof getItemsFn>,
                         q: ItemsSearch['q'],
                         status: ItemsSearch['status']
                 }) {
+    const items = use(data)
 
-    const filteredItem = data.filter((item) => {
+    const filteredItem = items.filter((item) => {
         const matchQuery = q === ''
             || item.title?.toLowerCase().includes(q.toLowerCase())
             || item.tags.some((tag) => tag.toLowerCase().includes(q.toLowerCase()));
@@ -41,13 +43,13 @@ function ItemsList({
                         <Inbox className={"size-12"}/>
                     </EmptyMedia>
                     <EmptyTitle>
-                        {data.length === 0 ? "No Items saved yet" : "No Items Found"}
+                        {items.length === 0 ? "No Items saved yet" : "No Items Found"}
                     </EmptyTitle>
                     <EmptyDescription>
-                        {data.length === 0 ? "Import a URL to get started with saving your content." : "No items match your current search filters."}
+                        {items.length === 0 ? "Import a URL to get started with saving your content." : "No items match your current search filters."}
                     </EmptyDescription>
                 </EmptyHeader>
-                {data.length === 0 && (
+                {items.length === 0 && (
                     <EmptyContent>
                         <Link to={"/dashboard/import"}>
                             Import URL
@@ -108,15 +110,34 @@ function ItemsList({
     )
 }
 
+function ItemsGridSkeleton() {
+    return (
+        <div className={"grid gap-6 md:grid-cols-2"}>
+            {[1, 2, 3, 4].map((i) => (
+                <Card key={i} className={"overflow-hidden pt-0"}>
+                    <Skeleton className={"aspect-video w-full"}/>
+                    <CardHeader className={"space-y-3"}>
+                        <div className={"flex items-center justify-between"}>
+                            <Skeleton className={"h-5 w-20 rounded-full"}/>
+                            <Skeleton className={"size-8 rounded-md"}/>
+                        </div>
+                        <Skeleton className={"h-6 w-full"}/>
+                    </CardHeader>
+                </Card>
+            ))}
+        </div>
+    )
+}
+
 
 export const Route = createFileRoute('/dashboard/items/')({
     component: RouteComponent,
-    loader: () => getItemsFn(),
+    loader: () => ({itemsPromise: getItemsFn()}),
     validateSearch: itemsSearchSchema
 })
 
 function RouteComponent() {
-    const data = Route.useLoaderData();
+    const {itemsPromise} = Route.useLoaderData();
     const {status, q} = Route.useSearch();
     const [searchInput, setSearchInput] = useState(q);
     const navigate = useNavigate({from: Route.fullPath});
@@ -166,7 +187,10 @@ function RouteComponent() {
                     </SelectContent>
                 </Select>
             </div>
-            <ItemsList data={data} q={q} status={status}/>
+
+            <Suspense fallback={<ItemsGridSkeleton/>}>
+                <ItemsList data={itemsPromise} q={q} status={status}/>
+            </Suspense>
         </div>
     )
 }
