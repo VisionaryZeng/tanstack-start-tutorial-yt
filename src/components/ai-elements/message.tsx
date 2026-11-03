@@ -324,14 +324,33 @@ export type MessageResponseProps = ComponentProps<typeof Streamdown>;
 const streamdownPlugins = { cjk, code, math, mermaid };
 
 export const MessageResponse = memo(
-  ({ className, ...props }: MessageResponseProps) => (
+  ({ className, components, ...props }: MessageResponseProps) => (
     <Streamdown
       className={cn(
         "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
         className
       )}
       plugins={streamdownPlugins}
-
+      components={{
+        // 修复 1：把外层的段落 p 替换为 div，防止包裹内部的 div 图片块
+        p: ({ node, ...rest }) => (
+            <div className="mb-4 leading-relaxed" {...rest} />
+        ),
+        // 修复 2：把 a 标签强制恢复为原生的 <a>，防止渲染成 <button> 导致嵌套
+        a: ({ node, href, children, ...rest }) => (
+            <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="wrap-anywhere font-medium text-primary underline"
+                {...rest}
+            >
+              {children}
+            </a>
+        ),
+        // 3. 把外部可能传入的其他 component 映射合并进来
+        ...components,
+      }}
       {...props}
     />
   ),
