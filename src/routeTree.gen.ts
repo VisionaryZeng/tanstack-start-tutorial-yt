@@ -19,6 +19,7 @@ import { Route as AuthLoginIndexRouteImport } from './routes/_auth/login/index'
 import { Route as AuthSignupIndexRouteImport } from './routes/_auth/signup/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as DashboardItemsIndexRouteImport } from './routes/dashboard/items/index'
+import { Route as DashboardItemsItemIdRouteImport } from './routes/dashboard/items/$itemId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -69,6 +70,11 @@ const DashboardItemsIndexRoute = DashboardItemsIndexRouteImport.update({
   path: '/items/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardItemsItemIdRoute = DashboardItemsItemIdRouteImport.update({
+  id: '/items/$itemId',
+  path: '/items/$itemId',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/items/$itemId': typeof DashboardItemsItemIdRoute
   '/login/': typeof AuthLoginIndexRoute
   '/signup/': typeof AuthSignupIndexRoute
   '/dashboard/items/': typeof DashboardItemsIndexRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/items/$itemId': typeof DashboardItemsItemIdRoute
   '/login': typeof AuthLoginIndexRoute
   '/signup': typeof AuthSignupIndexRoute
   '/dashboard/items': typeof DashboardItemsIndexRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/items/$itemId': typeof DashboardItemsItemIdRoute
   '/_auth/login/': typeof AuthLoginIndexRoute
   '/_auth/signup/': typeof AuthSignupIndexRoute
   '/dashboard/items/': typeof DashboardItemsIndexRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
     | '/dashboard/import'
     | '/dashboard/'
     | '/api/auth/$'
+    | '/dashboard/items/$itemId'
     | '/login/'
     | '/signup/'
     | '/dashboard/items/'
@@ -123,6 +133,7 @@ export interface FileRouteTypes {
     | '/dashboard/import'
     | '/dashboard'
     | '/api/auth/$'
+    | '/dashboard/items/$itemId'
     | '/login'
     | '/signup'
     | '/dashboard/items'
@@ -135,6 +146,7 @@ export interface FileRouteTypes {
     | '/dashboard/import'
     | '/dashboard/'
     | '/api/auth/$'
+    | '/dashboard/items/$itemId'
     | '/_auth/login/'
     | '/_auth/signup/'
     | '/dashboard/items/'
@@ -219,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardItemsIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/items/$itemId': {
+      id: '/dashboard/items/$itemId'
+      path: '/items/$itemId'
+      fullPath: '/dashboard/items/$itemId'
+      preLoaderRoute: typeof DashboardItemsItemIdRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
   }
 }
 
@@ -240,6 +259,7 @@ interface DashboardRouteRouteChildren {
   DashboardDiscoverRoute: typeof DashboardDiscoverRoute
   DashboardImportRoute: typeof DashboardImportRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardItemsItemIdRoute: typeof DashboardItemsItemIdRoute
   DashboardItemsIndexRoute: typeof DashboardItemsIndexRoute
 }
 
@@ -247,6 +267,7 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardDiscoverRoute: DashboardDiscoverRoute,
   DashboardImportRoute: DashboardImportRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardItemsItemIdRoute: DashboardItemsItemIdRoute,
   DashboardItemsIndexRoute: DashboardItemsIndexRoute,
 }
 

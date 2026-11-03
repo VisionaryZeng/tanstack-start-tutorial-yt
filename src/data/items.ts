@@ -5,6 +5,7 @@ import {prisma} from "@/db.ts";
 import {ItemStatus} from "@/generated/prisma/enums.ts";
 import {z} from "zod";
 import {authFnMiddleware} from "@/middlewares/auth.ts";
+import {notFound} from "@tanstack/react-router";
 
 
 export const scrapeUrlFn = createServerFn({method: "POST"})
@@ -155,7 +156,7 @@ export const getItemsFn = createServerFn({method: "GET"})
 .middleware([authFnMiddleware])
 .handler(async ({context}) => {
 
-    await new Promise(resolve => setTimeout(resolve, 5000))
+    await new Promise(resolve => setTimeout(resolve, 2000))
 
     return await prisma.savedItem.findMany({
         where: {
@@ -166,3 +167,21 @@ export const getItemsFn = createServerFn({method: "GET"})
         }
     })
 })
+
+export const getItemByIdFn = createServerFn({method: "GET"})
+    .middleware([authFnMiddleware])
+    .validator(z.object({id: z.string()}))
+    .handler(async ({data, context}) => {
+        const item = await prisma.savedItem.findUnique({
+            where: {
+                userId: context.session.user.id,
+                id: data.id
+            }
+        })
+
+        if (!item) {
+            throw notFound()
+        }
+
+        return item
+    })
