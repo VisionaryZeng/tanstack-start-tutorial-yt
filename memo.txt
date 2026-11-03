@@ -87,5 +87,12 @@ pnpm install firecrawl
 server middleware: 只在使用的位置生效
 global middleware: 拦截所有请求，位置固定为 src> start.ts
 
+jsx 无法渲染一个object，需要将日期转变为字符串
+
+a 标签比 link 组件更适合跳转到外部网站
+
+渲染 markdown 文本，支持数学公式
+pnpm dlx shadcn@latest add @ai-elements/message
+
 
 
