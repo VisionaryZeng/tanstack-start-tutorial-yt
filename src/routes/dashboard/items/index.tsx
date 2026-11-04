@@ -141,6 +141,20 @@ function ItemsGridSkeleton() {
 
 export const Route = createFileRoute('/dashboard/items/')({
     component: RouteComponent,
+
+    head: () => ({
+        meta: [
+            {
+                title: "Saved Items",
+            },
+            {
+                // 渲染外部链接生成卡片时会获取的标题
+                property: "og:title",
+                content: "Saved Items",
+            },
+        ]
+    }),
+
     // loader 瞬间执行完毕并返回一个普通对象，路由不再等待数据，立刻放行并开始渲染 RouteComponent
 
     /*

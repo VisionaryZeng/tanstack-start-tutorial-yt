@@ -11,7 +11,24 @@ import {MessageResponse} from "@/components/ai-elements/message.tsx";
 
 export const Route = createFileRoute('/dashboard/items/$itemId')({
     component: RouteComponent,
-    loader: ({params}) => getItemByIdFn({data: {id: params.itemId}})
+    loader: ({params}) => getItemByIdFn({data: {id: params.itemId}}),
+    head: ({loaderData}) => ({
+        meta: [
+            {
+                title: loaderData?.title ?? "Item Details",
+            },
+            {
+                // 渲染外部链接生成卡片时会获取的图片
+                property: "og:image",
+                content: loaderData?.ogImage ?? ""
+            },
+            {
+                // X 渲染外部链接生成卡片时会获取的标题
+                name: "twitter:title",
+                content: loaderData?.title ?? "Item Details"
+            }
+        ]
+    }),
 })
 
 function RouteComponent() {
