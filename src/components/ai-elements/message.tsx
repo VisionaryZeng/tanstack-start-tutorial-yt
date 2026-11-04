@@ -333,6 +333,9 @@ export const MessageResponse = memo(
       plugins={streamdownPlugins}
       components={{
         // 修复 1：把外层的段落 p 替换为 div，防止包裹内部的 div 图片块
+        /*
+          吃进一个带有 AST 杂质的 <p> 节点配置，过滤掉不需要的 node 数据，披上 Tailwind 的样式外衣，最后吐出一个完全符合 HTML 嵌套规范、装载着原汁原味内容的 <div> 容器
+        */
         p: ({ node, ...rest }) => (
             <div className="mb-4 leading-relaxed" {...rest} />
         ),

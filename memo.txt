@@ -94,5 +94,8 @@ a 标签比 link 组件更适合跳转到外部网站
 渲染 markdown 文本，支持数学公式
 pnpm dlx shadcn@latest add @ai-elements/message
 
+日志在服务端可能会解析失败，优先在客户端查看
+
+
 
 
