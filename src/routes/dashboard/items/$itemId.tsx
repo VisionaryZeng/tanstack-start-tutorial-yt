@@ -39,6 +39,7 @@ function RouteComponent() {
     const data = Route.useLoaderData()
     const [contentOpen, setContentOpen] = useState(false)
     const router = useRouter();
+    // 打字机缓冲
     const [partial, setPartial] = useState('')
 
     const {generate, result, isLoading} = useSummarize({
@@ -49,6 +50,7 @@ function RouteComponent() {
         }),
         threadId: data.id,
 
+        //  实现打字机效果
         onChunk: (chunk) => {
             if (chunk.type === 'TEXT_MESSAGE_CONTENT') {
                 setPartial((s) => s + chunk.delta)
@@ -68,7 +70,7 @@ function RouteComponent() {
 
     useEffect(() => {
         if (!result?.summary) return
-
+        //  这个 void 表示只执行函数，但不要函数结果，用于去掉语法提示
         void (async () => {
             await saveSummaryAndGenerateTagsFn({
                 data: {
@@ -88,6 +90,7 @@ function RouteComponent() {
             return
         }
         setPartial("")
+        //  这个 void 表示只执行函数，但不要函数结果，用于去掉语法提示
         void generate({text: data.content, style: 'concise'})
     }
 
