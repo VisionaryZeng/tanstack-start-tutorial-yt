@@ -1,15 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
 import {prisma} from "@/db.ts";
 import {chatParamsFromRequest, summarize, toServerSentEventsResponse} from "@tanstack/ai";
-import {authMiddleware} from "@/middlewares/auth.ts";
 import {summary_adapter} from "@/lib/openRouter.ts";
 
 export const Route = createFileRoute('/api/ai/summary')({
     // 核心区别：API 路由必须把 HTTP 方法包裹在 server.handlers 内部
     server: {
-        middleware: [authMiddleware],
         handlers: {
-            POST: async ({request,}) => {
+            POST: async ({request, context}) => {
                 const {threadId, forwardedProps,runId} = await chatParamsFromRequest(request);
 
                 const itemId = forwardedProps.itemId as string
@@ -23,11 +21,11 @@ export const Route = createFileRoute('/api/ai/summary')({
                 const item = await prisma.savedItem.findUnique({
                     where: {
                         id: itemId,
-                        // userId: context?.session?.user?.id,
+                        userId: context?.session?.user?.id,
                     },
                 })
 
-                // console.log(`userId: ${context?.session?.user?.id}`);
+                console.log(`userId: ${context?.session?.user?.id}`);
 
                 if (!item) {
                     console.log(`item doesn't exist!`)
