@@ -17,6 +17,7 @@ import { Route as DashboardDiscoverRouteImport } from './routes/dashboard/discov
 import { Route as DashboardImportRouteImport } from './routes/dashboard/import'
 import { Route as AuthLoginIndexRouteImport } from './routes/_auth/login/index'
 import { Route as AuthSignupIndexRouteImport } from './routes/_auth/signup/index'
+import { Route as ApiAiSummaryRouteImport } from './routes/api/ai/summary'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as DashboardItemsIndexRouteImport } from './routes/dashboard/items/index'
 import { Route as DashboardItemsItemIdRouteImport } from './routes/dashboard/items/$itemId'
@@ -60,6 +61,11 @@ const AuthSignupIndexRoute = AuthSignupIndexRouteImport.update({
   path: '/signup/',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const ApiAiSummaryRoute = ApiAiSummaryRouteImport.update({
+  id: '/api/ai/summary',
+  path: '/api/ai/summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/discover': typeof DashboardDiscoverRoute
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/ai/summary': typeof ApiAiSummaryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/items/$itemId': typeof DashboardItemsItemIdRoute
   '/login/': typeof AuthLoginIndexRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/dashboard/discover': typeof DashboardDiscoverRoute
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/api/ai/summary': typeof ApiAiSummaryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/items/$itemId': typeof DashboardItemsItemIdRoute
   '/login': typeof AuthLoginIndexRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/dashboard/discover': typeof DashboardDiscoverRoute
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/ai/summary': typeof ApiAiSummaryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/items/$itemId': typeof DashboardItemsItemIdRoute
   '/_auth/login/': typeof AuthLoginIndexRoute
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/dashboard/discover'
     | '/dashboard/import'
     | '/dashboard/'
+    | '/api/ai/summary'
     | '/api/auth/$'
     | '/dashboard/items/$itemId'
     | '/login/'
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/dashboard/discover'
     | '/dashboard/import'
     | '/dashboard'
+    | '/api/ai/summary'
     | '/api/auth/$'
     | '/dashboard/items/$itemId'
     | '/login'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/dashboard/discover'
     | '/dashboard/import'
     | '/dashboard/'
+    | '/api/ai/summary'
     | '/api/auth/$'
     | '/dashboard/items/$itemId'
     | '/_auth/login/'
@@ -156,6 +168,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
+  ApiAiSummaryRoute: typeof ApiAiSummaryRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -216,6 +229,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/signup/'
       preLoaderRoute: typeof AuthSignupIndexRouteImport
       parentRoute: typeof AuthRouteRoute
+    }
+    '/api/ai/summary': {
+      id: '/api/ai/summary'
+      path: '/api/ai/summary'
+      fullPath: '/api/ai/summary'
+      preLoaderRoute: typeof ApiAiSummaryRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -279,6 +299,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
+  ApiAiSummaryRoute: ApiAiSummaryRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

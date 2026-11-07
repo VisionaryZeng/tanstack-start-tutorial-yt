@@ -1,12 +1,15 @@
-import {createFileRoute, Link} from '@tanstack/react-router'
-import {ArrowLeft, Badge, Calendar, ChevronDown, Clock, ExternalLink, User} from "lucide-react";
+import {createFileRoute, Link, useRouter} from '@tanstack/react-router'
+import {ArrowLeft, Calendar, ChevronDown, Clock, ExternalLink, Loader2, Sparkles, User} from "lucide-react";
 import {Button, buttonVariants} from "@/components/ui/button.tsx";
-import {getItemByIdFn} from "@/data/items.ts";
-import {useState} from "react";
+import {getItemByIdFn, saveSummaryAndGenerateTagsFn} from "@/data/items.ts";
+import {useEffect, useState} from "react";
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/ui/collapsible.tsx";
 import {cn} from "@/lib/utils.ts";
 import {Card, CardContent} from "@/components/ui/card.tsx";
 import {MessageResponse} from "@/components/ai-elements/message.tsx";
+import {fetchServerSentEvents, useSummarize} from "@tanstack/ai-react";
+import {toast} from "sonner";
+import {Badge} from "@/components/ui/badge.tsx";
 
 
 export const Route = createFileRoute('/dashboard/items/$itemId')({
@@ -35,6 +38,59 @@ function RouteComponent() {
 
     const data = Route.useLoaderData()
     const [contentOpen, setContentOpen] = useState(false)
+    const router = useRouter();
+    const [partial, setPartial] = useState('')
+
+    const {generate, result, isLoading} = useSummarize({
+        connection: fetchServerSentEvents('/api/ai/summary', {
+            body: {
+                itemId: data.id
+            }
+        }),
+        threadId: data.id,
+
+        onChunk: (chunk) => {
+            if (chunk.type === 'TEXT_MESSAGE_CONTENT') {
+                setPartial((s) => s + chunk.delta)
+            }
+        },
+
+        onResult: (r) => {
+            // 最终以 result 为准
+            setPartial(r.summary)
+            return r
+        },
+
+        onError: (err) => console.error(err)
+    })
+
+    const display_summary = partial || result?.summary || data.summary || ''
+
+    useEffect(() => {
+        if (!result?.summary) return
+
+        void (async () => {
+            await saveSummaryAndGenerateTagsFn({
+                data: {
+                    id: data.id,
+                    summary: result.summary,
+                }
+            })
+            toast.success("Summary generated and saved!")
+            // 让路由状态失效，重新获取数据
+            await router.invalidate()
+        })()
+    }, [result?.summary, data.id])
+
+    async function handleGenerateSummary() {
+        if (!data.content) {
+            toast.error("No content found for summary")
+            return
+        }
+        setPartial("")
+        void generate({text: data.content, style: 'concise'})
+    }
+
 
     return (
         <div className="mx-auto max-w-3xl space-y-6 w-full">
@@ -91,10 +147,52 @@ function RouteComponent() {
                 {data.tags.length > 0 && (
                     <div className={"flex flex-wrap gap-2"}>
                         {data.tags.map((tag) => (
-                            <Badge>{tag}</Badge>
+                            <Badge key={tag}>{tag}</Badge>
                         ))}
                     </div>
                 )}
+
+                <Card className={"border-primary/20 bg-primary/5"}>
+                    <CardContent>
+                        <div className={"flex items-start justify-between gap-4"}>
+                            <div className={"flex-1"}>
+                                <h2 className={"text-sm font-semibold uppercase tracking-wide text-primary mb-3"}>
+                                    Summary
+                                </h2>
+                                {display_summary ? (
+                                    <MessageResponse>
+                                        {display_summary}
+                                    </MessageResponse>
+                                ) : (
+                                    <p>
+                                        {data.content ? "No summary" : "No content found for summary"}
+                                    </p>
+                                )}
+
+                            </div>
+
+                            {data.content && !data.summary && (
+                                <Button
+                                    onClick={() => handleGenerateSummary()}
+                                    disabled={isLoading}
+                                    size="sm"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-pulse"/>
+                                            Generating
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className={"mr-2 h-4 w-4"}/>
+                                            Generate
+                                        </>
+                                    )}
+                                </Button>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {data.content && (
                     <Collapsible open={contentOpen} onOpenChange={setContentOpen}>

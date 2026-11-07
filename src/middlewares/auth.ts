@@ -21,7 +21,8 @@ export const authMiddleware = createMiddleware().server(
     async ({next, request}) => {
         const url = new URL(request.url);
         // 非看板的路由直接放行，如： /login, /signup, /loggout 等
-        if (!url.password.startsWith('/dashboard')) {
+        if (!url.pathname.startsWith('/dashboard') &&
+            !url.pathname.startsWith('/api/ai')) {
             return next()
         }
         const headers = getRequestHeaders();

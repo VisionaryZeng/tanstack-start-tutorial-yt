@@ -96,6 +96,8 @@ pnpm dlx shadcn@latest add @ai-elements/message
 
 日志在服务端可能会解析失败，优先在客户端查看
 
+Server Routes：类似与 SpringBoot 中的 controller，但主要用于外部系统调用，如接收微信支付的 Webhook 回调、暴露给第三方系统调用的 OpenAPI 接口等
+
 
 
 

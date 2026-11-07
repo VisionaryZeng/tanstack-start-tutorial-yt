@@ -6,6 +6,8 @@ import {ItemStatus} from "@/generated/prisma/enums.ts";
 import {z} from "zod";
 import {authFnMiddleware} from "@/middlewares/auth.ts";
 import {notFound} from "@tanstack/react-router";
+import {adapter} from "@/lib/openRouter.ts";
+import {chat} from "@tanstack/ai";
 
 
 export const scrapeUrlFn = createServerFn({method: "POST"})
@@ -184,4 +186,56 @@ export const getItemByIdFn = createServerFn({method: "GET"})
         }
 
         return item
+    })
+
+export const saveSummaryAndGenerateTagsFn = createServerFn({method: "POST"})
+    .middleware([authFnMiddleware])
+    .validator(z.object({id: z.string(), summary: z.string()}))
+    .handler(async ({data, context}) => {
+        const existing = await prisma.savedItem.findUnique({
+            where: {
+                id: data.id,
+                userId: context.session.user.id,
+            },
+        })
+
+        if (!existing) {
+            throw notFound()
+        }
+
+        const {text} = await chat({
+            adapter,
+            systemPrompts: [
+                `You are a helpful assistant that extracts relevant tags from content summaries.
+Extract 3-5 short, relevant tags that categorize the content.
+Return ONLY a comma-separated list of tags, nothing else.
+Example: technology, programming, web development, javascript`,
+            ],
+            messages: [
+                {
+                    role: 'user',
+                    content: `Extract tags from this summary: \n\n${data.summary}`,
+                },
+            ],
+            threadId: data.id, // 任意稳定 id 即可
+            stream: false,              // 关键流式，对应原来的 generateText
+        })
+
+        const tags = text
+            .split(',')
+            .map((tag) => tag.trim().toLowerCase())
+            .filter((tag) => tag.length > 0)
+            .slice(0, 5)
+
+        return await prisma.savedItem.update({
+            where: {
+                userId: context.session.user.id,
+                id: data.id,
+            },
+            data: {
+                summary: data.summary,
+                tags: tags,
+            },
+        })
+
     })
