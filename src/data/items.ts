@@ -8,6 +8,8 @@ import {authFnMiddleware} from "@/middlewares/auth.ts";
 import {notFound} from "@tanstack/react-router";
 import {adapter} from "@/lib/openRouter.ts";
 import {chat} from "@tanstack/ai";
+import {discoverSearchSchema} from "@/schemas/item.ts";
+import type {SearchResultWeb} from "firecrawl";
 
 
 export const scrapeUrlFn = createServerFn({method: "POST"})
@@ -86,6 +88,26 @@ export const mapUrlFn = createServerFn({method: "POST"})
         })
         return result.links
     })
+
+export const searchWebFn = createServerFn({method: "POST"})
+    .middleware([authFnMiddleware])
+    .validator(discoverSearchSchema)
+    .handler(async ({data}) => {
+        const result = await firecrawl.search(data.query, {
+            limit: 15,
+            location: 'Germany',
+            //  最近一年的数据
+            tbs: 'qdr:y',
+        })
+
+        //  as 用于强制转换类型
+        return result.web?.map((item) => ({
+            url: (item as SearchResultWeb).url,
+            title: (item as SearchResultWeb).title,
+            description: (item as SearchResultWeb).description,
+        })) as SearchResultWeb[]
+    })
+
 
 export const bulkScrapeUrlFn = createServerFn({method: "POST"})
     .middleware([authFnMiddleware])
