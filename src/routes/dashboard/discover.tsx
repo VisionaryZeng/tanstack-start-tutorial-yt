@@ -216,7 +216,7 @@ function RouteComponent() {
                                                         Scraping: {progress.completed} / {progress.total}
                                                     </span>
                                                     <span className={"font-medium"}>
-                                                        {Math.round((progress.completed) / (progress.total)) * 100}
+                                                        {Math.round(progress.completed / progress.total) * 100}
                                                     </span>
                                                 </div>
                                                 <Progress value={(progress.completed / progress.total) * 100}/>
