@@ -10,6 +10,7 @@ import {adapter} from "@/lib/openRouter.ts";
 import {chat} from "@tanstack/ai";
 import {discoverSearchSchema} from "@/schemas/item.ts";
 import type {SearchResultWeb} from "firecrawl";
+import {type BulkScrapeProgress, ProgressStatus} from "@/lib/types.ts";
 
 
 export const scrapeUrlFn = createServerFn({method: "POST"})
@@ -113,8 +114,9 @@ export const bulkScrapeUrlFn = createServerFn({method: "POST"})
     .middleware([authFnMiddleware])
     .validator(z.object({
         urls: z.array(z.url())
-    })).handler(async ({data, context}) => {
+    })).handler(async function*({data, context}){
         console.log(`scrape all URLs ...`)
+        let total = data.urls.length
         for (let i = 0; i < data.urls.length; i++) {
             const url = data.urls[i]
             const item = await prisma.savedItem.create({
@@ -124,6 +126,8 @@ export const bulkScrapeUrlFn = createServerFn({method: "POST"})
                     status: ItemStatus.PENDING,
                 }
             })
+
+            let process_status: BulkScrapeProgress["status"] = ProgressStatus.SUCCESS
 
             try {
                 const result = await firecrawl.scrape(url, {
@@ -163,6 +167,7 @@ export const bulkScrapeUrlFn = createServerFn({method: "POST"})
                     },
                 })
             } catch {
+                process_status = ProgressStatus.FAILED
                 await prisma.savedItem.update({
                     where: {
                         id: item.id,
@@ -172,6 +177,14 @@ export const bulkScrapeUrlFn = createServerFn({method: "POST"})
                     },
                 })
             }
+
+            const process: BulkScrapeProgress = {
+                completed: i + 1,
+                total: total,
+                url: url,
+                status: process_status,
+            }
+            yield process
         }
     })
 

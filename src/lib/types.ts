@@ -20,3 +20,16 @@ export interface NavUserProps {
 }
 
 export type ItemsSearch = z.infer<typeof itemsSearchSchema>
+
+
+export enum ProgressStatus {
+    SUCCESS = "PENDING",
+    FAILED = "FAILED"
+}
+
+export interface BulkScrapeProgress {
+    completed: number
+    total: number
+    url: string
+    status: ProgressStatus
+}

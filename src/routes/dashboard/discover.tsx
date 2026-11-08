@@ -11,6 +11,8 @@ import {useState, useTransition} from "react";
 import {toast} from "sonner";
 import type {SearchResultWeb} from "firecrawl";
 import {discoverSearchSchema} from "@/schemas/item.ts";
+import {type BulkScrapeProgress, ProgressStatus} from "@/lib/types.ts";
+import {Progress} from "@/components/ui/progress.tsx";
 
 export const Route = createFileRoute('/dashboard/discover')({
     component: RouteComponent,
@@ -23,6 +25,8 @@ function RouteComponent() {
     const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set())
 
     const [isPending, startTransition] = useTransition()
+
+    const [progress, setProgress] = useState<BulkScrapeProgress | null>(null)
 
     const handleSelectedOne = (url: string) => {
         const newSelectedUrls = new Set(selectedUrls)
@@ -65,8 +69,32 @@ function RouteComponent() {
                 toast.error("Please select at least one URL to import")
                 return
             }
-            await bulkScrapeUrlFn({data: {urls: Array.from(selectedUrls)}})
-            toast.success(`${selectedUrls.size} URLs scraped successfully!`)
+
+            setProgress({
+                completed: 0,
+                total: selectedUrls.size,
+                url: "",
+                status: ProgressStatus.SUCCESS
+            })
+
+            let successCount = 0
+            let failedCount = 0
+
+            for await (const progress of await bulkScrapeUrlFn({data: {urls: Array.from(selectedUrls)}})) {
+                setProgress(progress)
+
+                if (progress.status == ProgressStatus.SUCCESS) {
+                    successCount++
+                } else {
+                    failedCount++
+                }
+            }
+            setProgress(null)
+            if (failedCount > 0) {
+                toast.success(`scraped ${successCount} URLs ${failedCount} failed`)
+            } else {
+                toast.success(`${selectedUrls.size} URLs scraped successfully!`)
+            }
         })
     }
 
@@ -180,11 +208,28 @@ function RouteComponent() {
                                         ))}
                                     </div>
 
+                                    {
+                                        progress && (
+                                            <div className={"space-y-2"}>
+                                                <div className={"flex items-center justify-between text-sm"}>
+                                                    <span className={"text-muted-foreground"}>
+                                                        Scraping: {progress.completed} / {progress.total}
+                                                    </span>
+                                                    <span className={"font-medium"}>
+                                                        {Math.round((progress.completed) / (progress.total)) * 100}
+                                                    </span>
+                                                </div>
+                                                <Progress value={(progress.completed / progress.total) * 100}/>
+                                            </div>
+                                        )
+                                    }
+
+
                                     <Button disabled={isBulkPending} onClick={handleBulkScrape} className={"w-full"} type={"button"}>
                                         {isBulkPending ? (
                                             <>
                                                 <Loader2 className={"size-4 animate-spin"}/>
-                                                Scraping...
+                                                {progress ? `Scraping ${progress.completed} / ${progress.total}...` : "Scraping..."}
                                             </>
                                         ) : (
                                             `Scrape ${selectedUrls.size} URLs`
