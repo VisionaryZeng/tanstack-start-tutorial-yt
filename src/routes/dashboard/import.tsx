@@ -12,6 +12,8 @@ import {bulkScrapeUrlFn, mapUrlFn, scrapeUrlFn} from "@/data/items.ts";
 import {toast} from "sonner";
 import type {SearchResultWeb} from "firecrawl";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
+import {type BulkScrapeProgress, ProgressStatus} from "@/lib/types.ts";
+import {Progress} from "@/components/ui/progress.tsx";
 
 export const Route = createFileRoute('/dashboard/import')({
     component: RouteComponent,
@@ -78,6 +80,7 @@ function RouteComponent() {
     })
 
     const [isBulkPending, startBulkTransition] = useTransition()
+    const [progress, setProgress] = useState<BulkScrapeProgress | null>(null)
 
     function handleBulkScrape() {
         startBulkTransition(async () => {
@@ -85,8 +88,30 @@ function RouteComponent() {
                 toast.error("Please select at least one URL to import")
                 return
             }
-            await bulkScrapeUrlFn({data :{urls:Array.from(selectedUrls)}})
-            toast.success(`${selectedUrls.size} URLs scraped successfully!`)
+
+            setProgress({
+                completed: 0,
+                total: selectedUrls.size,
+                url: "",
+                status: ProgressStatus.SUCCESS
+            })
+
+            let successCount = 0
+            let failCount = 0
+            for await (const progress of await bulkScrapeUrlFn({data: {urls: Array.from(selectedUrls)}})) {
+                setProgress(progress)
+                if (progress.status == ProgressStatus.SUCCESS) {
+                    successCount++
+                } else {
+                    failCount++
+                }
+            }
+            setProgress(null)
+            if (failCount > 0) {
+                toast.success(`scraped ${selectedUrls.size} URLs ${failCount} fail!`)
+            } else {
+                toast.success(`${selectedUrls.size} URLs scraped successfully!`)
+            }
         })
     }
 
@@ -251,10 +276,10 @@ function RouteComponent() {
                                                 {isPending ? (
                                                     <>
                                                         <Loader2 className={"size-4 animate-spin"}/>
-                                                        "Processing..."
+                                                        Processing...
                                                     </>
                                                 ) : (
-                                                    'Import Urls'
+                                                    'Import URLs'
                                                 )}
                                             </Button>
                                         </Field>
@@ -297,6 +322,22 @@ function RouteComponent() {
                                                     </label>
                                                 ))}
                                             </div>
+
+                                            {
+                                                progress && (
+                                                    <div className={"space-y-2"}>
+                                                        <div className={"flex items-center justify-between text-sm"}>
+                                                    <span className={"text-muted-foreground"}>
+                                                        Scraping: {progress.completed} / {progress.total}
+                                                    </span>
+                                                            <span className={"font-medium"}>
+                                                        {Math.round(progress.completed / progress.total) * 100}
+                                                    </span>
+                                                        </div>
+                                                        <Progress value={(progress.completed / progress.total) * 100}/>
+                                                    </div>
+                                                )
+                                            }
 
                                             <Button disabled={isBulkPending} onClick={handleBulkScrape} className={"w-full"} type={"button"}>
                                                 {isBulkPending ? (
