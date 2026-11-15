@@ -99,6 +99,7 @@ pnpm dlx shadcn@latest add @ai-elements/message
 Server Routes：类似与 SpringBoot 中的 controller，但主要用于外部系统调用，如接收微信支付的 Webhook 回调、暴露给第三方系统调用的 OpenAPI 接口等，
                在 server routes 运行时 start.ts 中的中间件会自动执行
 
+不要再项目中添加任何的私钥
 取消文件git管理
 git rm --cached FILENAME
 
