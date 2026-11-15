@@ -104,5 +104,10 @@ Server Routes：类似与 SpringBoot 中的 controller，但主要用于外部�
 git rm --cached FILENAME
 
 
+Sentry 是一个专业的错误监控与性能监控平台
+vite.config.ts 设置 nitro({ rollupConfig: { external: [/^@sentry\//] } }) 告诉构建工具：不要把 Sentry 的 SDK 打包进去
+没有集成  Sentry 的话，可以去掉变成 nitro()
+
+
 
 
