@@ -103,6 +103,17 @@ Server Routes：类似与 SpringBoot 中的 controller，但主要用于外部�
 取消文件git管理
 git rm --cached FILENAME
 
+撤销历史上提交的文件：
+1. 安装git-filter-repo: uv tool install git-filter-repo
+2. 本地隔离原有仓库：git clone <原仓库地址>
+3. 备份要删除的文件
+4. 删除文件: git filter-repo --path <path/to/file> --invert-paths
+5. 确认没有要删除文件信息： git log --all --full-history -- <path/to/file>
+6. 恢复备份文件
+7. 检查.gitignore 是否包含删除文件: git status
+8. 关联原仓库：git remote add origin <原仓库地址>
+9. 强制推送到远程仓库: git push --force --all
+
 
 Sentry 是一个专业的错误监控与性能监控平台
 vite.config.ts 设置 nitro({ rollupConfig: { external: [/^@sentry\//] } }) 告诉构建工具：不要把 Sentry 的 SDK 打包进去
