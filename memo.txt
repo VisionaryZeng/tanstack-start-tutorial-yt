@@ -112,7 +112,7 @@ git rm --cached FILENAME
 6. 恢复备份文件
 7. 检查.gitignore 是否包含删除文件: git status
 8. 关联原仓库：git remote add origin <原仓库地址>
-9. 强制推送到远程仓库: git push --force --all
+9. 强制推送到远程仓库: git push -u --force --all origin
 
 
 Sentry 是一个专业的错误监控与性能监控平台
