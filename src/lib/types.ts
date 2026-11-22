@@ -1,35 +1,32 @@
-import type {LucideIcon} from "lucide-react";
-import type {User} from "better-auth";
-import {itemsSearchSchema} from "@/schemas/item.ts";
-import {z} from "zod";
-
+import type { LucideIcon } from 'lucide-react'
+import type { User } from 'better-auth'
+import { itemsSearchSchema } from '@/schemas/item.ts'
+import { z } from 'zod'
 
 export interface NavPrimaryProps {
-    items: {
-        title: string
-        to: string
-        icon: LucideIcon
-        // 路由匹配模式，exact: true 严格匹配，false 模糊匹配
-        activeOptions: {exact: boolean}
-    }[]
+  items: {
+    title: string
+    to: string
+    icon: LucideIcon
+    // 路由匹配模式，exact: true 严格匹配，false 模糊匹配
+    activeOptions: { exact: boolean }
+  }[]
 }
 
-
 export interface NavUserProps {
-    user: User
+  user: User
 }
 
 export type ItemsSearch = z.infer<typeof itemsSearchSchema>
 
-
 export enum ProgressStatus {
-    SUCCESS = "PENDING",
-    FAILED = "FAILED"
+  SUCCESS = 'PENDING',
+  FAILED = 'FAILED',
 }
 
 export interface BulkScrapeProgress {
-    completed: number
-    total: number
-    url: string
-    status: ProgressStatus
+  completed: number
+  total: number
+  url: string
+  status: ProgressStatus
 }

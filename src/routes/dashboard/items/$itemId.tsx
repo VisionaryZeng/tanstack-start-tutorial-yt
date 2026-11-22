@@ -1,224 +1,250 @@
-import {createFileRoute, Link, useRouter} from '@tanstack/react-router'
-import {ArrowLeft, Calendar, ChevronDown, Clock, ExternalLink, Loader2, Sparkles, User} from "lucide-react";
-import {Button, buttonVariants} from "@/components/ui/button.tsx";
-import {getItemByIdFn, saveSummaryAndGenerateTagsFn} from "@/data/items.ts";
-import {useEffect, useState} from "react";
-import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/ui/collapsible.tsx";
-import {cn} from "@/lib/utils.ts";
-import {Card, CardContent} from "@/components/ui/card.tsx";
-import {MessageResponse} from "@/components/ai-elements/message.tsx";
-import {fetchServerSentEvents, useSummarize} from "@tanstack/ai-react";
-import {toast} from "sonner";
-import {Badge} from "@/components/ui/badge.tsx";
-
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
+import {
+  ArrowLeft,
+  Calendar,
+  ChevronDown,
+  Clock,
+  ExternalLink,
+  Loader2,
+  Sparkles,
+  User,
+} from 'lucide-react'
+import { Button, buttonVariants } from '@/components/ui/button.tsx'
+import { getItemByIdFn, saveSummaryAndGenerateTagsFn } from '@/data/items.ts'
+import { useEffect, useState } from 'react'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible.tsx'
+import { cn } from '@/lib/utils.ts'
+import { Card, CardContent } from '@/components/ui/card.tsx'
+import { MessageResponse } from '@/components/ai-elements/message.tsx'
+import { fetchServerSentEvents, useSummarize } from '@tanstack/ai-react'
+import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge.tsx'
 
 export const Route = createFileRoute('/dashboard/items/$itemId')({
-    component: RouteComponent,
-    loader: ({params}) => getItemByIdFn({data: {id: params.itemId}}),
-    head: ({loaderData}) => ({
-        meta: [
-            {
-                title: loaderData?.title ?? "Item Details",
-            },
-            {
-                // 渲染外部链接生成卡片时会获取的图片
-                property: "og:image",
-                content: loaderData?.ogImage ?? ""
-            },
-            {
-                // X 渲染外部链接生成卡片时会获取的标题
-                name: "twitter:title",
-                content: loaderData?.title ?? "Item Details"
-            }
-        ]
-    }),
+  component: RouteComponent,
+  loader: ({ params }) => getItemByIdFn({ data: { id: params.itemId } }),
+  head: ({ loaderData }) => ({
+    meta: [
+      {
+        title: loaderData?.title ?? 'Item Details',
+      },
+      {
+        // 渲染外部链接生成卡片时会获取的图片
+        property: 'og:image',
+        content: loaderData?.ogImage ?? '',
+      },
+      {
+        // X 渲染外部链接生成卡片时会获取的标题
+        name: 'twitter:title',
+        content: loaderData?.title ?? 'Item Details',
+      },
+    ],
+  }),
 })
 
 function RouteComponent() {
+  const data = Route.useLoaderData()
+  const [contentOpen, setContentOpen] = useState(false)
+  const router = useRouter()
+  // 打字机缓冲
+  const [partial, setPartial] = useState('')
 
-    const data = Route.useLoaderData()
-    const [contentOpen, setContentOpen] = useState(false)
-    const router = useRouter();
-    // 打字机缓冲
-    const [partial, setPartial] = useState('')
+  const { generate, result, isLoading } = useSummarize({
+    connection: fetchServerSentEvents('/api/ai/summary', {
+      body: {
+        itemId: data.id,
+      },
+    }),
+    threadId: data.id,
 
-    const {generate, result, isLoading} = useSummarize({
-        connection: fetchServerSentEvents('/api/ai/summary', {
-            body: {
-                itemId: data.id
-            }
-        }),
-        threadId: data.id,
+    //  实现打字机效果
+    onChunk: (chunk) => {
+      if (chunk.type === 'TEXT_MESSAGE_CONTENT') {
+        setPartial((s) => s + chunk.delta)
+      }
+    },
 
-        //  实现打字机效果
-        onChunk: (chunk) => {
-            if (chunk.type === 'TEXT_MESSAGE_CONTENT') {
-                setPartial((s) => s + chunk.delta)
-            }
+    onResult: (r) => {
+      // 最终以 result 为准
+      setPartial(r.summary)
+      return r
+    },
+
+    onError: (err) => console.error(err),
+  })
+
+  const display_summary = partial || result?.summary || data.summary || ''
+
+  useEffect(() => {
+    if (!result?.summary) return
+    //  这个 void 表示只执行函数，但不要函数结果，用于去掉语法提示
+    void (async () => {
+      await saveSummaryAndGenerateTagsFn({
+        data: {
+          id: data.id,
+          summary: result.summary,
         },
+      })
+      toast.success('Summary generated and saved!')
+      // 让路由状态失效，重新获取数据
+      await router.invalidate()
+    })()
+  }, [result?.summary, data.id])
 
-        onResult: (r) => {
-            // 最终以 result 为准
-            setPartial(r.summary)
-            return r
-        },
-
-        onError: (err) => console.error(err)
-    })
-
-    const display_summary = partial || result?.summary || data.summary || ''
-
-    useEffect(() => {
-        if (!result?.summary) return
-        //  这个 void 表示只执行函数，但不要函数结果，用于去掉语法提示
-        void (async () => {
-            await saveSummaryAndGenerateTagsFn({
-                data: {
-                    id: data.id,
-                    summary: result.summary,
-                }
-            })
-            toast.success("Summary generated and saved!")
-            // 让路由状态失效，重新获取数据
-            await router.invalidate()
-        })()
-    }, [result?.summary, data.id])
-
-    async function handleGenerateSummary() {
-        if (!data.content) {
-            toast.error("No content found for summary")
-            return
-        }
-        setPartial("")
-        //  这个 void 表示只执行函数，但不要函数结果，用于去掉语法提示
-        void generate({text: data.content, style: 'concise'})
+  async function handleGenerateSummary() {
+    if (!data.content) {
+      toast.error('No content found for summary')
+      return
     }
+    setPartial('')
+    //  这个 void 表示只执行函数，但不要函数结果，用于去掉语法提示
+    void generate({ text: data.content, style: 'concise' })
+  }
 
+  return (
+    <div className="mx-auto max-w-3xl space-y-6 w-full">
+      <div className="flex justify-start">
+        <Link
+          to={'/dashboard/items'}
+          className={buttonVariants({
+            variant: 'outline',
+          })}
+        >
+          <ArrowLeft />
+          Go Back
+        </Link>
+      </div>
 
-    return (
-        <div className="mx-auto max-w-3xl space-y-6 w-full">
-            <div className="flex justify-start">
-                <Link to={"/dashboard/items"} className={buttonVariants({
-                    variant: 'outline'
-                })}>
-                    <ArrowLeft/>
-                    Go Back
-                </Link>
-            </div>
-
-            {data.ogImage && (
-                <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
-                    <img
-                        className={"h-full w-full object-cover transition-transform duration-300 hover:scale-105"}
-                        src={data.ogImage}
-                        alt={data.title ?? "Item Image"}
-                    />
-                </div>
-            )}
-
-            <div className={"space-y-3"}>
-                <h1 className={"text-3xl font-bold tracking-tight"}>
-                    {data.title ?? "Untitled"}
-                </h1>
-
-                <div className={"flex flex-wrap items-center gap-4 text-sm text-muted-foreground"}>
-                    {data.author && (
-                        <span className={"inline-flex items-center gap-1"}>
-                            <User className={"size-3.5"}/>
-                        </span>
-                    )}
-
-                    <span className={"inline-flex items-center gap-1"}>
-                        <Calendar className={"size-3.5"}/>
-                        {data.publishedAt?.toLocaleDateString("en-US")}
-                    </span>
-
-                    <span className={"inline-flex items-center gap-1"}>
-                        <Clock className={"size-3.5"}/>
-                        Saved {data.createdAt.toLocaleDateString("en-US")}
-                    </span>
-                </div>
-                <a
-                    href={data.url}
-                    target="_blank"
-                    className={"text-primary hover:underline inline-flex items-center gap-1 text-sm"}
-                >
-                    View Original
-                    <ExternalLink className={"size-3.5"}/>
-                </a>
-
-                {data.tags.length > 0 && (
-                    <div className={"flex flex-wrap gap-2"}>
-                        {data.tags.map((tag) => (
-                            <Badge key={tag}>{tag}</Badge>
-                        ))}
-                    </div>
-                )}
-
-                <Card className={"border-primary/20 bg-primary/5"}>
-                    <CardContent>
-                        <div className={"flex items-start justify-between gap-4"}>
-                            <div className={"flex-1"}>
-                                <h2 className={"text-sm font-semibold uppercase tracking-wide text-primary mb-3"}>
-                                    Summary
-                                </h2>
-                                {display_summary ? (
-                                    <MessageResponse>
-                                        {display_summary}
-                                    </MessageResponse>
-                                ) : (
-                                    <p>
-                                        {data.content ? "No summary" : "No content found for summary"}
-                                    </p>
-                                )}
-
-                            </div>
-
-                            {data.content && !data.summary && (
-                                <Button
-                                    onClick={() => handleGenerateSummary()}
-                                    disabled={isLoading}
-                                    size="sm"
-                                >
-                                    {isLoading ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-pulse"/>
-                                            Generating
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Sparkles className={"mr-2 h-4 w-4"}/>
-                                            Generate
-                                        </>
-                                    )}
-                                </Button>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {data.content && (
-                    <Collapsible open={contentOpen} onOpenChange={setContentOpen}>
-                        <CollapsibleTrigger asChild>
-                            <Button variant={"outline"} className={"w-full justify-between"}>
-                                <span className={"font-medium"}>Full Content</span>
-                                <ChevronDown
-                                    className={cn(contentOpen ? "rotate-180" : "", "size-4 transition-transform duration-200")}/>
-                            </Button>
-                        </CollapsibleTrigger>
-
-                        <CollapsibleContent>
-                            <Card className={"mt-2"}>
-                                <CardContent>
-                                    <MessageResponse>
-                                        {data.content}
-                                    </MessageResponse>
-                                </CardContent>
-                            </Card>
-                        </CollapsibleContent>
-                    </Collapsible>
-                )}
-            </div>
+      {data.ogImage && (
+        <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
+          <img
+            className={
+              'h-full w-full object-cover transition-transform duration-300 hover:scale-105'
+            }
+            src={data.ogImage}
+            alt={data.title ?? 'Item Image'}
+          />
         </div>
-    )
+      )}
+
+      <div className={'space-y-3'}>
+        <h1 className={'text-3xl font-bold tracking-tight'}>
+          {data.title ?? 'Untitled'}
+        </h1>
+
+        <div
+          className={
+            'flex flex-wrap items-center gap-4 text-sm text-muted-foreground'
+          }
+        >
+          {data.author && (
+            <span className={'inline-flex items-center gap-1'}>
+              <User className={'size-3.5'} />
+            </span>
+          )}
+
+          <span className={'inline-flex items-center gap-1'}>
+            <Calendar className={'size-3.5'} />
+            {data.publishedAt?.toLocaleDateString('en-US')}
+          </span>
+
+          <span className={'inline-flex items-center gap-1'}>
+            <Clock className={'size-3.5'} />
+            Saved {data.createdAt.toLocaleDateString('en-US')}
+          </span>
+        </div>
+        <a
+          href={data.url}
+          target="_blank"
+          className={
+            'text-primary hover:underline inline-flex items-center gap-1 text-sm'
+          }
+        >
+          View Original
+          <ExternalLink className={'size-3.5'} />
+        </a>
+
+        {data.tags.length > 0 && (
+          <div className={'flex flex-wrap gap-2'}>
+            {data.tags.map((tag) => (
+              <Badge key={tag}>{tag}</Badge>
+            ))}
+          </div>
+        )}
+
+        <Card className={'border-primary/20 bg-primary/5'}>
+          <CardContent>
+            <div className={'flex items-start justify-between gap-4'}>
+              <div className={'flex-1'}>
+                <h2
+                  className={
+                    'text-sm font-semibold uppercase tracking-wide text-primary mb-3'
+                  }
+                >
+                  Summary
+                </h2>
+                {display_summary ? (
+                  <MessageResponse>{display_summary}</MessageResponse>
+                ) : (
+                  <p>
+                    {data.content
+                      ? 'No summary'
+                      : 'No content found for summary'}
+                  </p>
+                )}
+              </div>
+
+              {data.content && !data.summary && (
+                <Button
+                  onClick={() => handleGenerateSummary()}
+                  disabled={isLoading}
+                  size="sm"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-pulse" />
+                      Generating
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className={'mr-2 h-4 w-4'} />
+                      Generate
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {data.content && (
+          <Collapsible open={contentOpen} onOpenChange={setContentOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant={'outline'} className={'w-full justify-between'}>
+                <span className={'font-medium'}>Full Content</span>
+                <ChevronDown
+                  className={cn(
+                    contentOpen ? 'rotate-180' : '',
+                    'size-4 transition-transform duration-200',
+                  )}
+                />
+              </Button>
+            </CollapsibleTrigger>
+
+            <CollapsibleContent>
+              <Card className={'mt-2'}>
+                <CardContent>
+                  <MessageResponse>{data.content}</MessageResponse>
+                </CardContent>
+              </Card>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+      </div>
+    </div>
+  )
 }
