@@ -2,10 +2,12 @@
   "name": "tanstack-start-tutorial-yt",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.28.1",
   "imports": {
     "#/*": "./src/*"
   },
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "dev": "vite dev --port 3000",
     "generate-routes": "tsr generate",
     "build": "vite build",
