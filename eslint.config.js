@@ -13,6 +13,13 @@ export default [
       '@typescript-eslint/require-await': 'off',
       'pnpm/json-enforce-catalog': 'off',
     },
+
+  },
+  {
+    files: ['src/components/**'],
+    rules: {
+      '@typescript-eslint/no-unnecessary-condition': 'off',
+    },
   },
   {
     ignores: ['eslint.config.js', 'prettier.config.js'],
