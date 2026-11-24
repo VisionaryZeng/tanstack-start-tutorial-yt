@@ -20,6 +20,7 @@ export default [
     rules: {
       '@typescript-eslint/no-unnecessary-condition': 'off',
       'import/consistent-type-specifier-style': 'off',
+      'no-shadow': 'off',
     },
   },
   {
