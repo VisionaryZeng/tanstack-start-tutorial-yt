@@ -19,6 +19,7 @@ export default [
     files: ['src/components/**'],
     rules: {
       '@typescript-eslint/no-unnecessary-condition': 'off',
+      'import/consistent-type-specifier-style': 'off',
     },
   },
   {
