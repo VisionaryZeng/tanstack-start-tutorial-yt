@@ -46,7 +46,7 @@ export const Route = createFileRoute('/api/ai/summary')({
           stream: true, // 默认为 true
         })
 
-        //Return the stream in the format useCompletion expects
+        // Return the stream in the format useCompletion expects
         return toServerSentEventsResponse(result)
       },
     },

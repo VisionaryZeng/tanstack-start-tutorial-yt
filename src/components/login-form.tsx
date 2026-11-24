@@ -135,9 +135,9 @@ export function LoginForm({
                 <Button disabled={isPending} type="submit">
                   {isPending ? 'Logging in...' : 'Login'}
                 </Button>
-                {/*<Button variant="outline" type="button">*/}
-                {/*  Login with Google*/}
-                {/*</Button>*/}
+                {/* <Button variant="outline" type="button"> */}
+                {/*  Login with Google */}
+                {/* </Button> */}
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <Link to="/signup">Sign up</Link>
                 </FieldDescription>

@@ -14,7 +14,7 @@ export const Route = createFileRoute('/dashboard')({
 })
 
 function RouteComponent() {
-  //使用 服务端函数，实现服务端渲染，刷新的时候，数据不会有延迟
+  // 使用 服务端函数，实现服务端渲染，刷新的时候，数据不会有延迟
   // Route.useLoaderData() 时需要在 Route 上定义 loader: () => xxx()
   const { user } = Route.useLoaderData()
 
