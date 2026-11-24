@@ -29,13 +29,13 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22        # Vite 8 / Prisma 7 需要 Node 20.19+ 或 22.12+
+          node-version: 22 # Vite 8 / Prisma 7 需要 Node 20.19+ 或 22.12+
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm prisma generate
-      - run: pnpm check           # prettier --check
+      - run: pnpm check # prettier --check 解决问题：pnpm prettier --write .
       - run: pnpm lint
-      - run: pnpm build           # 同时生成 routeTree.gen.ts
-      - run: pnpm typecheck       # 必须在 build 之后
+      - run: pnpm build # 同时生成 routeTree.gen.ts
+      - run: pnpm typecheck # 必须在 build 之后
 #      - run: pnpm audit --prod --audit-level=high

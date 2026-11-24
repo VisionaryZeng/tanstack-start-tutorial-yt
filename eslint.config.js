@@ -14,7 +14,6 @@ export default [
       'pnpm/json-enforce-catalog': 'off',
       'import/consistent-type-specifier-style': 'off',
     },
-
   },
   {
     files: ['src/components/**'],

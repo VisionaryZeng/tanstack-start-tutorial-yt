@@ -14,8 +14,8 @@ const config = defineConfig({
       onLog(level, log, defaultHandler) {
         // 依赖包里保留的 "use client" 对 TanStack Start 无意义，屏蔽这条警告
         if (
-            log.code === 'MODULE_LEVEL_DIRECTIVE' &&
-            log.message.includes('"use client"')
+          log.code === 'MODULE_LEVEL_DIRECTIVE' &&
+          log.message.includes('"use client"')
         ) {
           return
         }
