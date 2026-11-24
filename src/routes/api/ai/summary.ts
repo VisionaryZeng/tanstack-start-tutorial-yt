@@ -26,11 +26,11 @@ export const Route = createFileRoute('/api/ai/summary')({
         const item = await prisma.savedItem.findUnique({
           where: {
             id: itemId,
-            userId: context?.session?.user?.id,
+            userId: context?.session.user.id,
           },
         })
 
-        console.log(`userId: ${context?.session?.user?.id}`)
+        console.log(`userId: ${context?.session.user.id}`)
 
         if (!item) {
           console.log(`item doesn't exist!`)

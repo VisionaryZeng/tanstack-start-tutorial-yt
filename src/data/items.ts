@@ -2,7 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { firecrawl } from '@/lib/firecrawl.ts'
 import {
   bulkImportSchema,
-  extractSchema,
+  type extractSchema,
   firecrawlSchema,
   singleImportSchema,
 } from '@/schemas/import.ts'
@@ -121,7 +121,7 @@ export const bulkScrapeUrlFn = createServerFn({ method: 'POST' })
   )
   .handler(async function* ({ data, context }) {
     console.log(`scrape all URLs ...`)
-    let total = data.urls.length
+    const total = data.urls.length
     for (let i = 0; i < data.urls.length; i++) {
       const url = data.urls[i]
       const item = await prisma.savedItem.create({

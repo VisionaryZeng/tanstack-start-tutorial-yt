@@ -112,11 +112,11 @@ function RouteComponent() {
 
       let successCount = 0
       let failCount = 0
-      for await (const progress of await bulkScrapeUrlFn({
+      for await (const scrapeProgress of await bulkScrapeUrlFn({
         data: { urls: Array.from(selectedUrls) },
       })) {
-        setProgress(progress)
-        if (progress.status == ProgressStatus.SUCCESS) {
+        setProgress(scrapeProgress)
+        if (scrapeProgress.status == ProgressStatus.SUCCESS) {
           successCount++
         } else {
           failCount++

@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import type { User } from 'better-auth'
-import { itemsSearchSchema } from '@/schemas/item.ts'
-import { z } from 'zod'
+import { type itemsSearchSchema } from '@/schemas/item.ts'
+import { type z } from 'zod'
 
 export interface NavPrimaryProps {
   items: {

@@ -262,9 +262,9 @@ function RouteComponent() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            {Object.values(ItemStatus).map((status) => (
-              <SelectItem key={status} value={status}>
-                {status[0] + status.slice(1).toLocaleLowerCase()}
+            {Object.values(ItemStatus).map((processStatus) => (
+              <SelectItem key={processStatus} value={processStatus}>
+                {processStatus[0] + processStatus.slice(1).toLocaleLowerCase()}
               </SelectItem>
             ))}
           </SelectContent>
