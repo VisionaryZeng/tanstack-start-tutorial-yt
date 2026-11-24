@@ -11,7 +11,6 @@ import { Link } from '@tanstack/react-router'
 import type { NavPrimaryProps } from '@/lib/types.ts'
 
 export function NavPrimary({ items }: NavPrimaryProps) {
-
   return (
     <SidebarGroup>
       <SidebarGroupContent>
