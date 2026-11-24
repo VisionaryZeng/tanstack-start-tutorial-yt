@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      # 仅用于 prisma generate / build，不会真的连接数据库
+      DATABASE_URL: postgresql://user:pass@localhost:5432/ci
+      BETTER_AUTH_SECRET: ci-dummy-secret-do-not-use-in-prod
+      BETTER_AUTH_URL: http://localhost:3000
+      FIRECRAWL_API_KEY: dummy
+      OPENROUTER_API_KEY: dummy
+      OPENROUTER_MODEL: dummy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22        # Vite 8 / Prisma 7 需要 Node 20.19+ 或 22.12+
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm prisma generate
+      - run: pnpm check           # prettier --check
+      - run: pnpm lint
+      - run: pnpm build           # 同时生成 routeTree.gen.ts
+      - run: pnpm typecheck       # 必须在 build 之后
+#      - run: pnpm audit --prod --audit-level=high
