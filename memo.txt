@@ -102,6 +102,7 @@ Server Routes：类似与 SpringBoot 中的 controller，但主要用于外部�
 不要再项目中添加任何的私钥
 取消文件git管理
 git rm --cached FILENAME
+git rm --cached -r DIRECTORY
 
 撤销历史上提交的文件：
 1. 安装git-filter-repo: uv tool install git-filter-repo
