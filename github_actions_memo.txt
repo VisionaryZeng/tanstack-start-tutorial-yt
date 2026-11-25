@@ -11,3 +11,6 @@
 
 只格式化一个文件
 pnpm prettier --write filepath
+
+自查是否泄露密钥
+git log --all --oneline -- .env .env.local
