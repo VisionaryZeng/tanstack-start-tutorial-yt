@@ -7,3 +7,7 @@
 代码根本不能正常工作	        类型错误、构建失败、格式混乱	                lint、tsc、build
 
 还有第五类，工具解决不了：鉴权逻辑漏洞和业务逻辑错误。
+
+
+只格式化一个文件
+pnpm prettier --write filepath
