@@ -1,6 +1,8 @@
 name: Audit
 
 on:
+  push:
+    branches: [test-github-actions]
   schedule:
     - cron: '0 3 * * 1' # 每周一
   workflow_dispatch:
