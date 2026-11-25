@@ -14,3 +14,76 @@ pnpm prettier --write filepath
 
 自查是否泄露密钥
 git log --all --oneline -- .env .env.local
+
+
+
+
+
+依赖版本管理规则压缩成一句话
+
+选版本 = 在声明范围里选一个满足条件的，能复用 lockfile 里已有的就复用；update 某包 会重新解析那个包下面的整棵子树；dedupe 是主动去重。
+
+据此判断该用哪个：
+
+情况	                                                用什么
+子依赖的范围仍然包含旧版本（如 firecrawl 的 zod）	        更新后再 pnpm dedupe
+子依赖的范围不再包含旧版本（如新版 shadcn 的 zod）	    更新父包就够了，旧版本自然被清掉
+父包的所有版本都不支持新版本	                            才考虑 overrides 或登记忽略
+
+查看漏洞
+pnpm audit --prod --audit-level=high
+┌─────────────────────┬────────────────────────────────────────────────────────┐
+│ high                │ systeminformation vulnerable to Windows command        │
+│                     │ injection in services() through Unicode quotation      │
+│                     │ marks                                                  │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Package             │ systeminformation                                      │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Vulnerable versions │ <5.33.16                                               │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Patched versions    │ >=5.33.16                                              │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Paths               │ .>shadcn>@dotenvx/dotenvx>systeminformation            │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ More info           │ https://github.com/advisories/GHSA-3f7j-7jwc-fxfj      │
+└─────────────────────┴────────────────────────────────────────────────────────┘
+
+观察哪些依赖包含该漏洞，如果发现已经有没有漏洞的版本，而且各个父依赖都支持升级到没有漏洞的子依赖版本，可以直接使用 pnpm dedupe 去重优化即可
+pnpm why systeminformation
+dependencies:
+shadcn 4.23.0
+├─┬ @dotenvx/dotenvx 1.75.1
+│ └── systeminformation 5.33.15
+└─┬ @shadcn/registry 0.2.1
+  └─┬ @dotenvx/dotenvx 1.75.1
+    └── systeminformation 5.33.15
+查看该漏洞的父依赖当前版本支持的子依赖版本是否支持最低安全版本，此案例支持，然后可以通过override指定出现漏洞的依赖版本
+pnpm view @dotenvx/dotenvx@1.75.1 dependencies peerDependencies
+{
+  conf: '^10.2.0',
+  fdir: '^6.2.0',
+  open: '^8.4.2',
+  execa: '^5.1.1',
+  which: '^4.0.0',
+  dotenv: '^17.2.1',
+  ignore: '^5.3.0',
+  undici: '^7.11.0',
+  enquirer: '^2.4.1',
+  commander: '^11.1.0',
+  'env-paths': '^2.2.1',
+  picomatch: '^4.0.4',
+  'yocto-spinner': '^1.1.0',
+  'object-treeify': '1.1.33',
+  systeminformation: '^5.22.11',
+  '@dotenvx/primitives': '^0.8.0'
+}
+
+如果不支持，继续查看【可用】最新版本的父依赖的子依赖版本是否支持最低安全版本，如果支持就更新父依赖即可，pnpm update @dotenvx/dotenvx@x.x.x
+pnpm view @dotenvx/dotenvx version dependencies peerDependencies
+
+验证方式
+pnpm install
+再通过pnpm audit --prod --audit-level=high查看漏洞报告
+
+不要一上来就 override
+先升级父包 → 用 dedupe 整理 → 同一大版本内用 overrides 兜底 → 评估后登记忽略

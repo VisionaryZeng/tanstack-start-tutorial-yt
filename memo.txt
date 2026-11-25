@@ -121,5 +121,9 @@ vite.config.ts 设置 nitro({ rollupConfig: { external: [/^@sentry\//] } }) 告�
 没有集成  Sentry 的话，可以去掉变成 nitro()
 
 
+本地开发时开VPN需要设置 TUN 模式
+否则会报错：Request path cannot be relayed
+
+
 
 
